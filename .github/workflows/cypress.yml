@@ -27,8 +27,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Cypress tests
-        run: npx cypress run
+      - name: Run smoke tests
+        run: npx cypress run --spec "cypress/e2e/smoke.cy.js"
+
+      - name: Wait between suites
+        run: sleep 20
+
+      - name: Run API tests
+        run: npx cypress run --spec "cypress/e2e/api/**/*.cy.js"
+
+      - name: Wait between suites
+        run: sleep 20
+
+      - name: Run UI tests
+        run: npx cypress run --spec "cypress/e2e/ui/**/*.cy.js"
+
+      - name: Wait between suites
+        run: sleep 20
+
+      - name: Run accessibility tests
+        run: npx cypress run --spec "cypress/e2e/accessibility/**/*.cy.js"
 
       - name: Upload logs
         if: always()

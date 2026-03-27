@@ -31,19 +31,19 @@ jobs:
         run: npx cypress run --spec "cypress/e2e/smoke.cy.js"
 
       - name: Wait between suites
-        run: sleep 20
+        run: sleep 60
 
       - name: Run API tests
         run: npx cypress run --spec "cypress/e2e/api/**/*.cy.js"
 
       - name: Wait between suites
-        run: sleep 20
+        run: sleep 60
 
       - name: Run UI tests
         run: npx cypress run --spec "cypress/e2e/ui/**/*.cy.js"
 
       - name: Wait between suites
-        run: sleep 20
+        run: sleep 60
 
       - name: Run accessibility tests
         run: npx cypress run --spec "cypress/e2e/accessibility/**/*.cy.js"

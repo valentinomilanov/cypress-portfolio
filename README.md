@@ -77,6 +77,23 @@ Open Cypress UI:
 ```bash
 npx cypress open
 ```
+## CI/CD
+
+This project uses GitHub Actions for continuous integration, automatically triggered on every push to `master`.
+
+### Pipeline structure
+- Smoke tests
+- API tests
+- UI tests  
+- Accessibility tests
+
+### Known limitation
+The target application (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. As a result, UI and accessibility tests may fail in CI due to `403 Forbidden` responses — this is a limitation of the practice site, not the test suite itself. API tests run reliably in CI as they target a separate API server (`api.practicesoftwaretesting.com`).
+
+All 20 tests pass consistently when run locally:
+```bash
+npx cypress run
+```
 
 ## Logging
 

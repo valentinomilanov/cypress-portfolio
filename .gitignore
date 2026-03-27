@@ -2,3 +2,4 @@ node_modules/
 cypress/logs/
 cypress/videos/
 cypress/screenshots/
+.git/config

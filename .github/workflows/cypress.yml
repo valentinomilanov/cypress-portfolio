@@ -37,14 +37,6 @@ jobs:
         run: |
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
 
-      - name: Check Laravel logs
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec -T laravel-api cat storage/logs/laravel.log
-
-      - name: Verify database seeding
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec -T laravel-api php artisan tinker --execute="echo App\Models\Product::count();"
-
       - name: Wait for API to be ready
         run: |
           echo "Waiting for API..."

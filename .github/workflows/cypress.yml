@@ -33,6 +33,16 @@ jobs:
         run: |
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
 
+      - name: Setup Laravel environment
+        run: |
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api cp .env.example .env
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan key:generate
+
+      - name: Setup Laravel storage
+        run: |
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 storage
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 bootstrap/cache
+
       - name: Run database migrations and seed
         run: |
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
@@ -40,7 +50,7 @@ jobs:
       - name: Wait for API to be ready
         run: |
           echo "Waiting for API..."
-          for i in {1..100}; do
+          for i in {1..30}; do
             if curl -s http://localhost:8091/categories/tree | grep -q "id"; then
               echo "API is ready!"
               break

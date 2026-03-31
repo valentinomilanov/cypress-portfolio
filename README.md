@@ -29,10 +29,11 @@ cypress-portfolio/
 
 | Suite | Tests | Description |
 |---|---|---|
+| Smoke | 1 | Logger smoke test |
 | UI | 8 | Login, logout, product filtering, cart, checkout |
 | API | 6 | Auth, products, categories, user profile |
 | Accessibility | 5 | WCAG 2.0/2.1 scans on key pages |
-| **Total** | **19** | |
+| **Total** | **20** | |
 
 ## Target Application
 
@@ -82,17 +83,33 @@ npx cypress open
 This project uses GitHub Actions for continuous integration, automatically triggered on every push to `master`.
 
 ### Pipeline structure
-- Smoke tests
-- API tests
-- UI tests  
-- Accessibility tests
+1. Clone the [Practice Software Testing](https://github.com/testsmith-io/practice-software-testing) app
+2. Start the full app stack with Docker Compose
+3. Configure Laravel environment and seed the database
+4. Wait for API and frontend to be ready
+5. Run all 20 Cypress tests against the local Docker instance
+6. Upload logs and screenshots as artifacts
 
-### Known limitation
-The target application (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. As a result, UI and accessibility tests may fail in CI due to `403 Forbidden` responses — this is a limitation of the practice site, not the test suite itself. API tests run reliably in CI as they target a separate API server (`api.practicesoftwaretesting.com`).
+### Why Docker?
+The public practice site (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. Running the app locally in Docker completely bypasses this limitation and gives us a stable, isolated environment for CI.
 
-All 20 tests pass consistently when run locally:
+### Run locally
+
+**Against the public site (no Docker needed):**
 ```bash
 npx cypress run
+```
+
+**Against a local Docker instance (recommended for CI parity):**
+```bash
+# Start the practice app
+git clone https://github.com/testsmith-io/practice-software-testing.git
+cd practice-software-testing
+docker compose up -d
+
+# Run tests against local instance
+cd ../cypress-portfolio
+$env:CYPRESS_BASE_URL="http://localhost:4200"; $env:CYPRESS_API_URL="http://localhost:8091"; npx cypress run
 ```
 
 ## Logging

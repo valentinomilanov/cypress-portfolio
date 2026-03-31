@@ -4,7 +4,7 @@ import NavigationBar from '../../pages/NavigationBar.js'
 describe('Authentication', () => {
 
     beforeEach(() => {
-        LoginPage.visit()
+        cy.visitPage('/auth/login')
     })
 
     it('TC-2: Login with valid credentials', () => {

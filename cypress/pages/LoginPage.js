@@ -9,11 +9,6 @@ class LoginPage {
     passwordError = '[data-test="password-error"]'
 
     // Actions
-    visit() {
-        cy.logStep('Navigate to login page URL')
-        cy.visit('https://practicesoftwaretesting.com/auth/login')
-    }
-
     fillEmail(email) {
         cy.get(this.emailInput).clear()
         cy.logEnterValueToField('email', 'email')

@@ -20,20 +20,20 @@ const checkA11y = (pageName) => {
 describe('Accessibility', () => {
 
     it('TC-16: Home page has no critical accessibility violations', () => {
-        ProductPage.visit()
+        cy.visitPage()
         cy.get('[data-test^="category-"]').should('be.visible')
         checkA11y('Home page')
     })
 
     it('TC-17: Login page has no critical accessibility violations', () => {
-        LoginPage.visit()
+        cy.visitPage('/auth/login')
         cy.get('[data-test="login-submit"]').should('be.visible')
         checkA11y('Login page')
     })
 
     it('TC-18: Product listing page has no critical accessibility violations', () => {
         cy.fixture('products').then((products) => {
-            ProductPage.visit()
+            cy.visitPage()
             ProductPage.filterByCategory(products.category)
             cy.get('[data-test="product-name"]').should('be.visible')
             checkA11y('Product listing page')
@@ -42,7 +42,7 @@ describe('Accessibility', () => {
 
     it('TC-19: Product detail page has no critical accessibility violations', () => {
         cy.fixture('products').then((products) => {
-            ProductPage.visit()
+            cy.visitPage()
             ProductPage.filterByCategory(products.category)
             ProductPage.selectProduct(products.productName)
             cy.get('[data-test="add-to-cart"]').should('be.visible')
@@ -53,7 +53,7 @@ describe('Accessibility', () => {
     it('TC-20: Checkout page has no critical accessibility violations', () => {
         cy.fixture('users').then((users) => {
             cy.fixture('products').then((products) => {
-                ProductPage.visit()
+                cy.visitPage()
                 NavigationBar.clickSignIn()
                 LoginPage.login(users.validUser.email, users.validUser.password)
                 NavigationBar.assertLoggedIn()

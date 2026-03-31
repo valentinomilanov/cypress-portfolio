@@ -6,7 +6,7 @@ import CheckoutPage from '../../pages/CheckoutPage.js'
 describe('Product', () => {
 
     beforeEach(() => {
-        ProductPage.visit()
+        cy.visitPage()
     })
 
     it('TC-6: Filter products by category', () => {

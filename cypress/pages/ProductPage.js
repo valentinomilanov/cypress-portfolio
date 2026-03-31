@@ -6,11 +6,6 @@ class ProductPage {
     cartQuantity = '[data-test="cart-quantity"]'
 
     // Actions
-    visit() {
-        cy.logStep('Navigate to home page URL')
-        cy.visit('https://practicesoftwaretesting.com')
-    }
-
     filterByCategory(category) {
         cy.logStep(`Click on a category filter`)
         cy.logInfo(`Click on category filter: ${category}`)

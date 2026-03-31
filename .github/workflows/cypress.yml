@@ -19,6 +19,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Clone practice software testing app
+        run: git clone https://github.com/testsmith-io/practice-software-testing.git
+
+      - name: Start app with Docker
+        run: |
+          cd practice-software-testing
+          docker compose up -d
+
+      - name: Install composer dependencies
+        run: |
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
+
+      - name: Run database migrations and seed
+        run: |
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
+
+      - name: Wait for app to be ready
+        run: |
+          echo "Waiting for app to be ready..."
+          sleep 60
+          curl --retry 10 --retry-delay 5 --retry-connrefused http://localhost:4200
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,26 +49,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run smoke tests
-        run: npx cypress run --spec "cypress/e2e/smoke.cy.js"
-
-      - name: Wait between suites
-        run: sleep 60
-
-      - name: Run API tests
-        run: npx cypress run --spec "cypress/e2e/api/**/*.cy.js"
-
-      - name: Wait between suites
-        run: sleep 60
-
-      - name: Run UI tests
-        run: npx cypress run --spec "cypress/e2e/ui/**/*.cy.js"
-
-      - name: Wait between suites
-        run: sleep 60
-
-      - name: Run accessibility tests
-        run: npx cypress run --spec "cypress/e2e/accessibility/**/*.cy.js"
+      - name: Run Cypress tests
+        run: npx cypress run
+        env:
+          CYPRESS_BASE_URL: http://localhost:4200
+          CYPRESS_API_URL: http://localhost:8091
 
       - name: Upload logs
         if: always()

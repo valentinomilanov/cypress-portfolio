@@ -6,7 +6,7 @@ import NavigationBar from '../../pages/NavigationBar.js'
 describe('Checkout', () => {
 
     beforeEach(() => {
-        ProductPage.visit()
+        cy.visitPage()
     })
 
     it('TC-9: Complete checkout flow', () => {

@@ -17,53 +17,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Clone and start app
-        run: |
-          git clone https://github.com/testsmith-io/practice-software-testing.git
-          cd practice-software-testing
-          docker compose up -d
-          sleep 30
-
-      - name: Install composer dependencies
-        run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
-
-      - name: Setup Laravel environment
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_HOST=127.0.0.1/DB_HOST=mariadb/' .env"
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_DATABASE=laravel/DB_DATABASE=toolshop/' .env"
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_USERNAME=.*/DB_USERNAME=root/' .env"
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env"
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan key:generate
-
-      - name: Setup Laravel storage
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 storage
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 bootstrap/cache
-
-      - name: Run database migrations and seed
-        run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
-
-      - name: Wait for API to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8091/categories/tree | grep -q "id"; then echo "API ready!"; break; fi
-            sleep 10
-          done
-
-      - name: Wait for frontend to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:4200 | grep -q "html"; then echo "Frontend ready!"; break; fi
-            sleep 10
-          done
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
+      - name: Setup app
+        uses: ./.github/actions/setup-app
 
       - name: Run smoke test
         run: npx cypress run --spec "cypress/e2e/smoke.cy.js"

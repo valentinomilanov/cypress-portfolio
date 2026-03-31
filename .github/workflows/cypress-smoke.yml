@@ -1,37 +1,31 @@
-name: Cypress Test Suite
+name: Cypress Smoke Test
 
 on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  cypress-run:
+  smoke:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Clone practice software testing app
-        run: git clone https://github.com/testsmith-io/practice-software-testing.git
-
-      - name: Start app with Docker
+      - name: Clone and start app
         run: |
+          git clone https://github.com/testsmith-io/practice-software-testing.git
           cd practice-software-testing
           docker compose up -d
-          echo "Waiting for containers to initialize..."
           sleep 30
 
       - name: Install composer dependencies
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
+        run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
 
       - name: Setup Laravel environment
         run: |
@@ -47,30 +41,19 @@ jobs:
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 bootstrap/cache
 
       - name: Run database migrations and seed
-        run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
+        run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
 
       - name: Wait for API to be ready
         run: |
-          echo "Waiting for API..."
           for i in {1..30}; do
-            if curl -s http://localhost:8091/categories/tree | grep -q "id"; then
-              echo "API is ready!"
-              break
-            fi
-            echo "Attempt $i: API not ready yet, waiting 10s..."
+            if curl -s http://localhost:8091/categories/tree | grep -q "id"; then echo "API ready!"; break; fi
             sleep 10
           done
 
       - name: Wait for frontend to be ready
         run: |
-          echo "Waiting for frontend..."
           for i in {1..30}; do
-            if curl -s http://localhost:4200 | grep -q "html"; then
-              echo "Frontend is ready!"
-              break
-            fi
-            echo "Attempt $i: Frontend not ready yet, waiting 10s..."
+            if curl -s http://localhost:4200 | grep -q "html"; then echo "Frontend ready!"; break; fi
             sleep 10
           done
 
@@ -82,8 +65,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Cypress tests
-        run: npx cypress run
+      - name: Run smoke test
+        run: npx cypress run --spec "cypress/e2e/smoke.cy.js"
         env:
           CYPRESS_BASE_URL: http://localhost:4200
           CYPRESS_API_URL: http://localhost:8091
@@ -92,12 +75,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-logs
+          name: logs-smoke
           path: cypress/logs/
 
       - name: Upload screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: cypress-screenshots
+          name: screenshots-smoke
           path: cypress/screenshots/

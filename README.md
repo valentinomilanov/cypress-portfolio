@@ -62,7 +62,7 @@ npm install
 
 ### Running Tests
 
-Run all tests:
+Run all tests against the public site:
 ```bash
 npx cypress run
 ```

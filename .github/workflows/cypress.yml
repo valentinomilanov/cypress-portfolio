@@ -33,9 +33,13 @@ jobs:
         run: |
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
 
-      - name: Check env example
+      - name: Check if env exists
         run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec -T laravel-api cat .env.example
+          docker compose -f practice-software-testing/docker-compose.yml exec -T laravel-api ls -la .env || echo "No .env file found"
+
+      - name: Check docker compose env vars
+        run: |
+          cat practice-software-testing/docker-compose.yml
 
       - name: Setup Laravel environment
         run: |

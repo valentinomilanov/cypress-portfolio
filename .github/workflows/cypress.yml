@@ -35,11 +35,9 @@ jobs:
 
       - name: Setup Laravel environment
         run: |
-          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api bash -c "
-            sed -i 's/DB_HOST=127.0.0.1/DB_HOST=mariadb/' .env &&
-            sed -i 's/DB_DATABASE=laravel/DB_DATABASE=toolshop/' .env &&
-            sed -i 's/DB_PASSWORD=/DB_PASSWORD=root/' .env
-          "
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_HOST=127.0.0.1/DB_HOST=mariadb/' .env"
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_DATABASE=laravel/DB_DATABASE=toolshop/' .env"
+          docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_PASSWORD=/DB_PASSWORD=root/' .env"
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan key:generate
 
       - name: Setup Laravel storage

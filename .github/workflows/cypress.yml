@@ -26,6 +26,8 @@ jobs:
         run: |
           cd practice-software-testing
           docker compose up -d
+          echo "Waiting for containers to initialize..."
+          sleep 30
 
       - name: Install composer dependencies
         run: |
@@ -35,11 +37,29 @@ jobs:
         run: |
           docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
 
-      - name: Wait for app to be ready
+      - name: Wait for API to be ready
         run: |
-          echo "Waiting for app to be ready..."
-          sleep 60
-          curl --retry 10 --retry-delay 5 --retry-connrefused http://localhost:4200
+          echo "Waiting for API..."
+          for i in {1..30}; do
+            if curl -s http://localhost:8091/categories/tree | grep -q "id"; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Attempt $i: API not ready yet, waiting 10s..."
+            sleep 10
+          done
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for frontend..."
+          for i in {1..30}; do
+            if curl -s http://localhost:4200 | grep -q "html"; then
+              echo "Frontend is ready!"
+              break
+            fi
+            echo "Attempt $i: Frontend not ready yet, waiting 10s..."
+            sleep 10
+          done
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

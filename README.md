@@ -7,11 +7,17 @@ A test automation portfolio project built with Cypress, showcasing UI, API, and 
 - **Cypress** — E2E and API testing framework
 - **cypress-axe** — Accessibility testing using axe-core (WCAG 2.0/2.1)
 - **cypress-jsonl-logger** — Custom structured JSONL logger ([GitHub](https://github.com/valentinomilanov/cypress-jsonl-logger))
-- **Qase** — Test case management and result reporting
 
 ## Project Structure
 ```
 cypress-portfolio/
+├── .github/
+│   ├── actions/
+│   │   └── setup-app/        ← Reusable composite action
+│   └── workflows/
+│       ├── cypress-smoke.yml       ← Smoke pipeline
+│       ├── cypress-sequential.yml  ← Sequential pipeline
+│       └── cypress-parallel.yml    ← Parallel pipeline
 ├── cypress/
 │   ├── e2e/
 │   │   ├── ui/               ← UI test specs
@@ -78,20 +84,29 @@ Open Cypress UI:
 ```bash
 npx cypress open
 ```
+
 ## CI/CD
 
-This project uses GitHub Actions for continuous integration, automatically triggered on every push to `master`.
-
-### Pipeline structure
-1. Clone the [Practice Software Testing](https://github.com/testsmith-io/practice-software-testing) app
-2. Start the full app stack with Docker Compose
-3. Configure Laravel environment and seed the database
-4. Wait for API and frontend to be ready
-5. Run all 20 Cypress tests against the local Docker instance
-6. Upload logs and screenshots as artifacts
+This project uses GitHub Actions for continuous integration with three pipelines, all powered by a shared composite action that sets up the Docker environment.
 
 ### Why Docker?
-The public practice site (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. Running the app locally in Docker completely bypasses this limitation and gives us a stable, isolated environment for CI.
+The public practice site (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. Running the app locally in Docker completely bypasses this limitation and gives a stable, isolated environment for CI.
+
+### Pipelines
+
+| Pipeline | Trigger | Description |
+|---|---|---|
+| `cypress-smoke.yml` | Push to `master` + manual | Runs smoke test only — fast deploy gate |
+| `cypress-sequential.yml` | Pull request + manual | Runs all 20 tests sequentially in one job |
+| `cypress-parallel.yml` | Manual only | Runs each suite in a parallel job |
+
+### Pipeline steps
+Each pipeline uses a shared composite action (`.github/actions/setup-app`) that:
+1. Clones the [Practice Software Testing](https://github.com/testsmith-io/practice-software-testing) app
+2. Starts the full app stack with Docker Compose
+3. Configures the Laravel environment and seeds the database
+4. Waits for the API and frontend to be ready
+5. Installs Node.js dependencies
 
 ### Run locally
 
@@ -146,3 +161,4 @@ All UI interactions are encapsulated in Page Objects:
 ## Author
 
 Valentino Milanov
+```

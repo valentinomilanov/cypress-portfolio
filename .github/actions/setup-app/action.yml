@@ -15,6 +15,7 @@ runs:
         git clone https://github.com/testsmith-io/practice-software-testing.git
         cd practice-software-testing
         docker compose up -d
+        sleep 30
 
     - name: Install Composer dependencies
       shell: bash
@@ -76,6 +77,10 @@ runs:
     - name: Install Node dependencies
       shell: bash
       run: npm install
+
+    - name: Type-check project
+      shell: bash
+      run: npm run typecheck
 
     - name: Install Playwright Chromium
       shell: bash

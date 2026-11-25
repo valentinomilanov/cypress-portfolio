@@ -1,22 +1,26 @@
-name: Setup App
-description: Clones, starts and configures the practice software testing app
+name: Setup Practice Software Testing App
+description: Starts the local Practice Software Testing app and installs the Playwright project dependencies.
 
 runs:
   using: composite
   steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
     - name: Clone and start app
       shell: bash
       run: |
         git clone https://github.com/testsmith-io/practice-software-testing.git
         cd practice-software-testing
         docker compose up -d
-        sleep 30
 
-    - name: Install composer dependencies
+    - name: Install Composer dependencies
       shell: bash
       run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api composer install --no-dev --ignore-platform-reqs
 
-    - name: Setup Laravel environment
+    - name: Configure Laravel environment
       shell: bash
       run: |
         docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_HOST=127.0.0.1/DB_HOST=mariadb/' .env"
@@ -25,37 +29,54 @@ runs:
         docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api sh -c "sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=root/' .env"
         docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan key:generate
 
-    - name: Setup Laravel storage
+    - name: Configure Laravel storage
       shell: bash
       run: |
         docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 storage
         docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api chmod -R 777 bootstrap/cache
 
-    - name: Run database migrations and seed
+    - name: Migrate and seed database
       shell: bash
       run: docker compose -f practice-software-testing/docker-compose.yml exec --user root -T laravel-api php artisan migrate:fresh --seed
 
-    - name: Wait for API to be ready
+    - name: Wait for API
       shell: bash
       run: |
+        ready=false
         for i in {1..30}; do
-          if curl -s http://localhost:8091/categories/tree | grep -q "id"; then echo "API ready!"; break; fi
+          if curl -fsS http://localhost:8091/categories/tree | grep -q '"id"'; then
+            ready=true
+            echo "API ready"
+            break
+          fi
           sleep 10
         done
+        if [ "$ready" != true ]; then
+          echo "API did not become ready"
+          exit 1
+        fi
 
-    - name: Wait for frontend to be ready
+    - name: Wait for frontend
       shell: bash
       run: |
+        ready=false
         for i in {1..30}; do
-          if curl -s http://localhost:4200 | grep -q "html"; then echo "Frontend ready!"; break; fi
+          if curl -fsS http://localhost:4200 | grep -qi '<html'; then
+            ready=true
+            echo "Frontend ready"
+            break
+          fi
           sleep 10
         done
+        if [ "$ready" != true ]; then
+          echo "Frontend did not become ready"
+          exit 1
+        fi
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-
-    - name: Install dependencies
+    - name: Install Node dependencies
       shell: bash
       run: npm install
+
+    - name: Install Playwright Chromium
+      shell: bash
+      run: npx playwright install --with-deps chromium

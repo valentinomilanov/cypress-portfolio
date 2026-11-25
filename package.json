@@ -1,21 +1,24 @@
 {
-  "name": "cypress-portfolio",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "axe-core": "^4.11.1",
-    "cypress": "^15.12.0",
-    "cypress-axe": "^1.7.0"
-  },
+  "name": "playwright-portfolio",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Playwright and TypeScript portfolio covering UI, API, and accessibility testing.",
   "type": "module",
-  "dependencies": {
-    "cypress-jsonl-logger": "github:valentinomilanov/cypress-jsonl-logger"
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/smoke",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:a11y": "playwright test tests/accessibility",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2"
   }
 }

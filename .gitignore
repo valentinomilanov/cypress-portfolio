@@ -1,5 +1,6 @@
 node_modules/
-cypress/logs/
-cypress/videos/
-cypress/screenshots/
+playwright-report/
+test-results/
+playwright/logs/
+.env
 .git/config

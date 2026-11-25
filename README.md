@@ -1,164 +1,200 @@
-# Cypress Portfolio
+# Playwright Portfolio
 
-A test automation portfolio project built with Cypress, showcasing UI, API, and Accessibility testing skills.
+A TypeScript test automation portfolio built with **Playwright Test**, showcasing end-to-end UI, API, and accessibility testing against the Practice Software Testing application.
 
-## Tech Stack
+## Tech stack
 
-- **Cypress** — E2E and API testing framework
-- **cypress-axe** — Accessibility testing using axe-core (WCAG 2.0/2.1)
-- **cypress-jsonl-logger** — Custom structured JSONL logger ([GitHub](https://github.com/valentinomilanov/cypress-jsonl-logger))
+- **Playwright Test** — browser automation, UI tests, API requests, fixtures, retries, and traces
+- **TypeScript** — strict typing for tests, page objects, and test data
+- **@axe-core/playwright** — automated WCAG 2.0 A/AA accessibility scans
+- **Custom JSONL reporter** — structured test, step, verification, information, and accessibility-violation logs
+- **GitHub Actions + Docker Compose** — repeatable CI environment using a local instance of the target application
 
-## Project Structure
-```
-cypress-portfolio/
+## Project structure
+
+```text
+playwright-portfolio/
 ├── .github/
 │   ├── actions/
-│   │   └── setup-app/        ← Reusable composite action
+│   │   └── setup-app/
+│   │       └── action.yml
 │   └── workflows/
-│       ├── cypress-smoke.yml       ← Smoke pipeline
-│       ├── cypress-sequential.yml  ← Sequential pipeline
-│       └── cypress-parallel.yml    ← Parallel pipeline
-├── cypress/
-│   ├── e2e/
-│   │   ├── ui/               ← UI test specs
-│   │   ├── api/              ← API test specs
-│   │   └── accessibility/    ← Accessibility test specs
-│   ├── pages/                ← Page Object Model
-│   ├── fixtures/             ← Test data (JSON)
-│   ├── logs/                 ← Auto-generated JSONL logs
-│   └── support/              ← Cypress support files
-├── cypress.config.js
+│       ├── playwright-smoke.yml
+│       ├── playwright-sequential.yml
+│       └── playwright-parallel.yml
+├── src/
+│   ├── pages/                 # Page Object Model
+│   ├── reporters/             # Custom JSONL reporter
+│   └── utils/                 # Logging helpers
+├── tests/
+│   ├── accessibility/         # axe-core accessibility tests
+│   ├── api/                   # API tests using Playwright APIRequest
+│   ├── fixtures/              # Typed reusable test data
+│   ├── smoke/                 # Smoke test
+│   └── ui/                    # UI tests
+├── playwright.config.ts
+├── tsconfig.json
 └── package.json
 ```
 
-## Test Coverage
+## Test coverage
 
-| Suite | Tests | Description |
-|---|---|---|
-| Smoke | 1 | Logger smoke test |
+| Suite | Tests | Coverage |
+|---|---:|---|
+| Smoke | 1 | Application availability and home page |
 | UI | 8 | Login, logout, product filtering, cart, checkout |
-| API | 6 | Auth, products, categories, user profile |
-| Accessibility | 5 | WCAG 2.0/2.1 scans on key pages |
+| API | 6 | Authentication, products, categories, user profile |
+| Accessibility | 5 | WCAG 2.0 A/AA scans on key application views |
 | **Total** | **20** | |
 
-## Target Application
+Accessibility scans log all axe violations and fail the test when a critical-impact violation is present. Automated scans are a useful regression signal, not a substitute for manual accessibility review.
+
+## Target application
 
 [Practice Software Testing](https://practicesoftwaretesting.com) — a purpose-built e-commerce application for QA practice.
 
 API documentation: [Swagger UI](https://api.practicesoftwaretesting.com/api/documentation)
 
-## Setup
+## Prerequisites
 
-### Prerequisites
-- Node.js v18+
+- Node.js 22 or newer (Playwright's current supported Node.js lines are documented in the [Playwright installation guide](https://playwright.dev/docs/intro))
 - npm
+- Docker Desktop / Docker Engine and Docker Compose (for the local CI-parity environment)
 
-### Installation
+## Installation
 
-Clone the repository:
 ```bash
 git clone https://github.com/valentinomilanov/cypress-portfolio.git
 cd cypress-portfolio
-```
-
-Install dependencies:
-```bash
 npm install
+npx playwright install chromium
 ```
 
-### Running Tests
+On Linux CI runners, install browser system dependencies with:
 
-Run all tests against the public site:
 ```bash
-npx cypress run
+npx playwright install --with-deps chromium
+```
+
+## Running tests
+
+Run the complete suite:
+
+```bash
+npm test
 ```
 
 Run a specific suite:
+
 ```bash
-npx cypress run --spec "cypress/e2e/ui/*.cy.js"
-npx cypress run --spec "cypress/e2e/api/*.cy.js"
-npx cypress run --spec "cypress/e2e/accessibility/*.cy.js"
+npm run test:smoke
+npm run test:ui
+npm run test:api
+npm run test:a11y
 ```
 
-Open Cypress UI:
+Useful development commands:
+
 ```bash
-npx cypress open
+npm run test:headed
+npm run test:debug
+npm run typecheck
+npm run report
+```
+
+Playwright uses Chromium by default. Tests can be run against the public application or a locally hosted Docker instance.
+
+## Configuration
+
+The base URL and API URL can be overridden with environment variables:
+
+| Variable | Default |
+|---|---|
+| `BASE_URL` | `https://practicesoftwaretesting.com` |
+| `API_URL` | `https://api.practicesoftwaretesting.com` |
+
+PowerShell example for the public app:
+
+```powershell
+$env:BASE_URL="https://practicesoftwaretesting.com"
+$env:API_URL="https://api.practicesoftwaretesting.com"
+npm test
 ```
 
 ## CI/CD
 
-This project uses GitHub Actions for continuous integration with three pipelines, all powered by a shared composite action that sets up the Docker environment.
+Three GitHub Actions pipelines are provided:
 
-### Why Docker?
-The public practice site (`practicesoftwaretesting.com`) rate limits requests from GitHub Actions IP addresses. Running the app locally in Docker completely bypasses this limitation and gives a stable, isolated environment for CI.
-
-### Pipelines
-
-| Pipeline | Trigger | Description |
+| Workflow | Trigger | Purpose |
 |---|---|---|
-| `cypress-smoke.yml` | Push to `master` + manual | Runs smoke test only — fast deploy gate |
-| `cypress-sequential.yml` | Pull request + manual | Runs all 20 tests sequentially in one job |
-| `cypress-parallel.yml` | Manual only | Runs each suite in a parallel job |
+| `playwright-smoke.yml` | Push to `master` + manual | Fast smoke gate |
+| `playwright-sequential.yml` | Pull request to `master` + manual | All suites in one job, one after another |
+| `playwright-parallel.yml` | Manual | Smoke, UI, API, and accessibility suites in separate jobs |
 
-### Pipeline steps
-Each pipeline uses a shared composite action (`.github/actions/setup-app`) that:
-1. Clones the [Practice Software Testing](https://github.com/testsmith-io/practice-software-testing) app
-2. Starts the full app stack with Docker Compose
-3. Configures the Laravel environment and seeds the database
-4. Waits for the API and frontend to be ready
-5. Installs Node.js dependencies
+Each workflow uses the shared composite action at `.github/actions/setup-app`. It starts the Practice Software Testing app using Docker Compose, configures and seeds its Laravel database, waits for the API and frontend to become ready, installs Node dependencies, and installs Chromium.
 
-### Run locally
+The target app runs at `http://localhost:4200`; its API runs at `http://localhost:8091`.
 
-**Against the public site (no Docker needed):**
+## Run locally against Docker
+
+Start the Practice Software Testing application:
+
 ```bash
-npx cypress run
-```
-
-**Against a local Docker instance (recommended for CI parity):**
-```bash
-# Start the practice app
 git clone https://github.com/testsmith-io/practice-software-testing.git
 cd practice-software-testing
 docker compose up -d
-
-# Run tests against local instance
-cd ../cypress-portfolio
-$env:CYPRESS_BASE_URL="http://localhost:4200"; $env:CYPRESS_API_URL="http://localhost:8091"; npx cypress run
 ```
 
-## Logging
+After its containers are running and the Laravel setup/database seed steps used by the composite action are complete, run the portfolio from another terminal:
 
-This project uses a custom JSONL logger that generates structured log files in `cypress/logs/YYYY-MM-DD/`.
+```bash
+# From the portfolio project directory
+BASE_URL=http://localhost:4200 API_URL=http://localhost:8091 npm test
+```
 
-Each log entry contains:
+PowerShell:
+
+```powershell
+$env:BASE_URL="http://localhost:4200"
+$env:API_URL="http://localhost:8091"
+npm test
+```
+
+## Reporting and diagnostics
+
+The custom reporter writes structured JSONL records to:
+
+```text
+playwright/logs/YYYY-MM-DD/test-run.jsonl
+```
+
+It records test steps, annotations (information, verifications, and accessibility violations), and final test status/duration. Playwright also retains traces, screenshots, and videos on failure in `test-results/`. Open the HTML report with `npm run report` when a report has been generated.
+
+Example JSONL records:
+
 ```json
-{"ts":"2026-03-26T10:00:00.000Z","spec":"auth.cy.js","test":"TC-2: Login with valid credentials","type":"STEP","text":"Navigate to login page URL"}
-{"ts":"2026-03-26T10:00:01.000Z","spec":"auth.cy.js","test":"TC-2: Login with valid credentials","type":"VERIFICATION","text":"User is logged in — nav menu is visible"}
-{"ts":"2026-03-26T10:00:01.500Z","spec":"auth.cy.js","test":"TC-2: Login with valid credentials","type":"RESULT","status":"PASSED","duration":3200}
+{"ts":"2026-11-24T10:00:00.000Z","spec":"auth.spec.ts","test":"Authentication › TC-2: Login with valid credentials","type":"STEP","text":"Submit valid account credentials"}
+{"ts":"2026-11-24T10:00:01.000Z","spec":"auth.spec.ts","test":"Authentication › TC-2: Login with valid credentials","type":"VERIFICATION","text":"Authenticated user menu is visible"}
+{"ts":"2026-11-24T10:00:01.500Z","spec":"auth.spec.ts","test":"Authentication › TC-2: Login with valid credentials","type":"RESULT","status":"PASSED","duration":3200}
 ```
-
-Log types:
-| Type | Description |
-|---|---|
-| `STEP` | User action performed |
-| `VERIFICATION` | Assertion made |
-| `INFO` | Additional data or context |
-| `VIOLATION` | Accessibility violation detected |
-| `RESULT` | Test pass/fail status and duration |
 
 ## Page Object Model
 
-All UI interactions are encapsulated in Page Objects:
+UI behavior is encapsulated in typed page objects:
 
-| Page Object | Responsibility |
+| Page object | Responsibility |
 |---|---|
-| `LoginPage` | Login form interactions and assertions |
-| `ProductPage` | Product browsing, filtering, cart actions |
-| `CheckoutPage` | Cart, address, payment flow |
-| `NavigationBar` | Navigation bar interactions |
+| `LoginPage` | Login form interactions and validation |
+| `ProductPage` | Category filtering, product selection, cart actions |
+| `CheckoutPage` | Cart, address, and payment flow |
+| `NavigationBar` | Main navigation, account menu, logout, cart |
+
+API tests use Playwright's built-in `APIRequestContext`; accessibility tests use `@axe-core/playwright`.
+
+## Migration notes
+
+This branch replaces the former Cypress/JavaScript implementation with Playwright/TypeScript. Cypress configuration, support commands, fixtures, page objects, specs, dependencies, and Cypress-specific GitHub Actions commands have been removed.
 
 ## Author
 
 Valentino Milanov
-```
